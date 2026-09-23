@@ -9,3 +9,4 @@ export {
 } from "./notificationService";
 export { authService, DEMO_ACCOUNTS } from "./authService";
 export { employeeMobileService } from "./employeeMobileService";
+export { companyService } from "./companyService";

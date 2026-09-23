@@ -6,11 +6,13 @@ import type {
   PaginatedResult,
   Position,
 } from "@/src/types";
+import { companyService } from "./companyService";
 import { mockRequest, paginate } from "./mockClient";
 
 export const employeeService = {
   async list(filters: EmployeeFilters = {}): Promise<PaginatedResult<Employee>> {
-    let result = [...employees];
+    const allowed = new Set(companyService.getEmployeeIdsForActiveCompany());
+    let result = employees.filter((e) => allowed.has(e.id));
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -49,6 +51,8 @@ export const employeeService = {
   },
 
   async getById(id: string): Promise<Employee | null> {
+    const allowed = new Set(companyService.getEmployeeIdsForActiveCompany());
+    if (!allowed.has(id)) return mockRequest(null);
     return mockRequest(employees.find((e) => e.id === id) ?? null);
   },
 

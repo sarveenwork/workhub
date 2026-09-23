@@ -14,6 +14,7 @@ export const currentUser: User = {
   email: "deepa.krishnan@workhub.demo",
   role: "admin",
   avatarUrl: null,
+  companyIds: ["co-ampang", "co-penang", "co-jb"],
 };
 
 export const notifications: Notification[] = [
@@ -122,6 +123,7 @@ export const recentActivity: ActivityItem[] = [
 ];
 
 export const companySettings: CompanySettings = {
+  id: "co-ampang",
   name: "Workhub Demo Sdn Bhd",
   registrationNumber: "202401234567 (DEMO)",
   address: "Level 12, Menara Demo, Jalan Ampang, 50450 Kuala Lumpur",

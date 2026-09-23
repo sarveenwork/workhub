@@ -2,14 +2,19 @@ import { DEMO_TODAY } from "@/src/lib/constants";
 import {
   employeeShifts,
   getTodayShift,
+  leaveBalanceSummary,
   leaveRequests,
+  MOBILE_EMPLOYEE_COMPANY_ID,
   MOBILE_EMPLOYEE_ID,
 } from "@/src/mocks/employeeMobile";
+import { companies } from "@/src/mocks/companies";
 import { employees } from "@/src/mocks/employees";
 import { payrolls } from "@/src/mocks/payroll";
 import type {
+  Company,
   ContributionListingRow,
   Employee,
+  LeaveBalanceSummary,
   LeaveRequest,
   LeaveType,
   PayrollItem,
@@ -29,6 +34,12 @@ export const employeeMobileService = {
   async getProfile(): Promise<Employee> {
     const emp = employees.find((e) => e.id === MOBILE_EMPLOYEE_ID)!;
     return mockRequest(emp);
+  },
+
+  async getCompany(): Promise<Company> {
+    const company =
+      companies.find((c) => c.id === MOBILE_EMPLOYEE_COMPANY_ID) ?? companies[0];
+    return mockRequest(company);
   },
 
   async getTodayShift(date = DEMO_TODAY): Promise<Shift | null> {
@@ -108,6 +119,10 @@ export const employeeMobileService = {
     );
   },
 
+  async getLeaveBalances(): Promise<LeaveBalanceSummary> {
+    return mockRequest(leaveBalanceSummary);
+  },
+
   async applyLeave(input: {
     type: LeaveType;
     startDate: string;
@@ -126,6 +141,24 @@ export const employeeMobileService = {
       reviewedAt: null,
     };
     leaveRequests.unshift(request);
+
+    // Reflect pending usage on mock balances for annual / MC / emergency
+    const balanceType =
+      input.type === "paid_leave"
+        ? "annual"
+        : input.type === "medical"
+          ? "medical"
+          : input.type === "emergency"
+            ? "emergency"
+            : null;
+    if (balanceType) {
+      const item = leaveBalanceSummary.balances.find((b) => b.type === balanceType);
+      if (item && item.remaining > 0) {
+        item.pending += 1;
+        item.remaining = Math.max(0, item.entitled - item.used - item.pending);
+      }
+    }
+
     return mockRequest(request);
   },
 };

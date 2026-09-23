@@ -167,6 +167,24 @@ export interface LeaveRequest {
   reviewedAt: string | null;
 }
 
+/** Mock leave entitlements for employee self-service. Exact rules TO BE CONFIRMED. */
+export interface LeaveBalanceItem {
+  type: "annual" | "medical" | "emergency";
+  label: string;
+  entitled: number;
+  used: number;
+  pending: number;
+  remaining: number;
+  unit: "days";
+}
+
+export interface LeaveBalanceSummary {
+  employeeId: string;
+  year: number;
+  balances: LeaveBalanceItem[];
+  notes: string;
+}
+
 export interface DeductionLine {
   type: DeductionType;
   label: string;
@@ -261,6 +279,32 @@ export interface User {
   email: string;
   role: UserRole;
   avatarUrl: string | null;
+  /** Companies this user can access (admin may have several). */
+  companyIds: string[];
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  code: string;
+  registrationNumber: string;
+  address: string;
+  phone: string;
+  email: string;
+  currency: string;
+  timezone: string;
+  status: "active" | "inactive";
+  employeeCount: number;
+}
+
+export interface CompanyUser {
+  id: string;
+  companyId: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: "active" | "invited" | "disabled";
+  lastActiveAt: string | null;
 }
 
 export interface PaginatedResult<T> {
@@ -294,6 +338,7 @@ export interface AttendanceFilters {
 }
 
 export interface CompanySettings {
+  id: string;
   name: string;
   registrationNumber: string;
   address: string;

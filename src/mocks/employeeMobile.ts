@@ -1,8 +1,16 @@
 import { DEMO_GUARD_SITES, DEMO_TODAY } from "@/src/lib/constants";
-import type { CheckInLocation, LeaveRequest, Shift } from "@/src/types";
+import type {
+  CheckInLocation,
+  LeaveBalanceSummary,
+  LeaveRequest,
+  Shift,
+} from "@/src/types";
 
 /** Demo employee persona for the mobile app (Ahmad Faizal — WH-1001). */
 export const MOBILE_EMPLOYEE_ID = "emp-001";
+
+/** Primary employer company for the mobile employee persona. */
+export const MOBILE_EMPLOYEE_COMPANY_ID = "co-ampang";
 
 function site(index: number): CheckInLocation {
   const s = DEMO_GUARD_SITES[index % DEMO_GUARD_SITES.length];
@@ -119,6 +127,46 @@ export const leaveRequests: LeaveRequest[] = [
     reviewedAt: null,
   },
 ];
+
+/**
+ * Demo leave / MC balances for the mobile employee.
+ * Entitlement rules are TO BE CONFIRMED — values are illustrative only.
+ */
+export const leaveBalanceSummary: LeaveBalanceSummary = {
+  employeeId: MOBILE_EMPLOYEE_ID,
+  year: 2026,
+  balances: [
+    {
+      type: "annual",
+      label: "Annual leave",
+      entitled: 14,
+      used: 5,
+      pending: 0,
+      remaining: 9,
+      unit: "days",
+    },
+    {
+      type: "medical",
+      label: "Medical leave (MC)",
+      entitled: 14,
+      used: 3,
+      pending: 0,
+      remaining: 11,
+      unit: "days",
+    },
+    {
+      type: "emergency",
+      label: "Emergency leave",
+      entitled: 3,
+      used: 0,
+      pending: 0,
+      remaining: 3,
+      unit: "days",
+    },
+  ],
+  notes:
+    "Balances are mock demo values. Exact annual / MC entitlements and carry-forward are TO BE CONFIRMED.",
+};
 
 export function getTodayShift(date = DEMO_TODAY): Shift | undefined {
   return employeeShifts.find((s) => s.date === date);

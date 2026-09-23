@@ -1,5 +1,6 @@
 "use client";
 
+import { CompanySwitcher } from "@/src/components/layout/CompanySwitcher";
 import { Avatar, Badge, Button, Dropdown, DropdownItem } from "@/src/components/ui";
 import { cn } from "@/src/lib/cn";
 import {
@@ -99,6 +100,7 @@ function isActive(pathname: string, href: string) {
   if (href === "/payroll") return pathname === "/payroll";
   if (href === "/reports") return pathname === "/reports";
   if (href === "/settings") return pathname.startsWith("/settings");
+  if (href === "/m") return pathname === "/m" || pathname.startsWith("/m/");
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -206,20 +208,23 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border bg-card/95 px-4 backdrop-blur">
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="lg:hidden"
+              className="shrink-0 lg:hidden"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="hidden sm:block">
+            <div className="hidden min-w-0 sm:block">
               <p className="text-sm font-medium">{roleTitle}</p>
-              <p className="text-xs text-muted-foreground">Workhub Demo Sdn Bhd</p>
+              <p className="truncate text-xs text-muted-foreground">
+                Select company to manage workforce & payroll
+              </p>
             </div>
+            <CompanySwitcher className="min-w-0 flex-1 sm:max-w-xs lg:ml-2" />
           </div>
           <div className="flex items-center gap-2">
             <Link href="/notifications">

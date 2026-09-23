@@ -3,8 +3,15 @@
 import { Badge, LoadingState } from "@/src/components/ui";
 import { formatCurrency, formatDate, formatTime } from "@/src/lib/format";
 import { employeeMobileService } from "@/src/services";
-import type { Employee, PayrollItem, Shift } from "@/src/types";
+import type {
+  Company,
+  Employee,
+  LeaveBalanceSummary,
+  PayrollItem,
+  Shift,
+} from "@/src/types";
 import {
+  Building2,
   CalendarDays,
   ChevronRight,
   Fingerprint,
@@ -17,24 +24,30 @@ import { useEffect, useState, type ReactNode } from "react";
 
 export default function EmployeeHomePage() {
   const [profile, setProfile] = useState<Employee | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [shift, setShift] = useState<Shift | null>(null);
   const [payslip, setPayslip] = useState<{
     periodLabel: string;
     item: PayrollItem;
   } | null>(null);
+  const [balances, setBalances] = useState<LeaveBalanceSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     void Promise.all([
       employeeMobileService.getProfile(),
+      employeeMobileService.getCompany(),
       employeeMobileService.getTodayShift(),
       employeeMobileService.getLatestPayslip(),
-    ]).then(([p, s, pay]) => {
+      employeeMobileService.getLeaveBalances(),
+    ]).then(([p, c, s, pay, bal]) => {
       if (cancelled) return;
       setProfile(p);
+      setCompany(c);
       setShift(s);
       setPayslip(pay ? { periodLabel: pay.periodLabel, item: pay.item } : null);
+      setBalances(bal);
       setLoading(false);
     });
     return () => {
@@ -61,6 +74,25 @@ export default function EmployeeHomePage() {
         </h1>
         <p className="text-sm text-slate-500">{profile.employeeId}</p>
       </div>
+
+      {company ? (
+        <div className="flex items-start gap-2.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-3 shadow-sm">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-800">
+            <Building2 className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+              Your company
+            </p>
+            <p className="truncate text-sm font-semibold text-slate-900">
+              {company.name}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {company.code} · {company.address.split(",")[0]}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <section className="rounded-2xl bg-slate-900 p-4 text-white shadow-sm">
         <div className="flex items-center justify-between">
@@ -110,10 +142,14 @@ export default function EmployeeHomePage() {
           subtitle="Location & time"
         />
         <QuickLink
-          href="/m/leave/apply"
+          href="/m/leave"
           icon={<Palmtree className="h-5 w-5" />}
-          title="Apply leave"
-          subtitle="Submit request"
+          title="Leave & MC"
+          subtitle={
+            balances
+              ? `${balances.balances.find((b) => b.type === "annual")?.remaining ?? 0} leave · ${balances.balances.find((b) => b.type === "medical")?.remaining ?? 0} MC`
+              : "Balances"
+          }
         />
         <QuickLink
           href="/m/pay"
@@ -128,6 +164,32 @@ export default function EmployeeHomePage() {
           subtitle="Week roster"
         />
       </section>
+
+      {balances ? (
+        <Link
+          href="/m/leave"
+          className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+        >
+          <div className="rounded-xl bg-teal-50 px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-teal-800/70">
+              Leave left
+            </p>
+            <p className="text-xl font-semibold text-teal-900">
+              {balances.balances.find((b) => b.type === "annual")?.remaining ?? 0}
+              <span className="text-xs font-normal text-teal-800/70"> days</span>
+            </p>
+          </div>
+          <div className="rounded-xl bg-sky-50 px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-sky-800/70">
+              MC available
+            </p>
+            <p className="text-xl font-semibold text-sky-900">
+              {balances.balances.find((b) => b.type === "medical")?.remaining ?? 0}
+              <span className="text-xs font-normal text-sky-800/70"> days</span>
+            </p>
+          </div>
+        </Link>
+      ) : null}
 
       {payslip ? (
         <Link

@@ -2,7 +2,6 @@ import { DEMO_TODAY } from "@/src/lib/constants";
 import {
   attendanceConfig,
   attendanceRecords,
-  companySettings,
   contributionConfig,
   currentUser,
   employees,
@@ -21,11 +20,14 @@ import type {
   PayrollConfig,
   User,
 } from "@/src/types";
+import { companyService } from "./companyService";
 import { mockRequest } from "./mockClient";
 
 export const notificationService = {
   async list(): Promise<Notification[]> {
-    return mockRequest([...notifications].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+    return mockRequest(
+      [...notifications].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    );
   },
 
   async unreadCount(): Promise<number> {
@@ -49,11 +51,16 @@ export const notificationService = {
 
 export const dashboardService = {
   async getKpis(): Promise<DashboardKpis> {
-    const today = attendanceRecords.filter((r) => r.date === DEMO_TODAY);
-    const latest = payrolls.find((p) => p.month === 9 && p.year === 2026) ?? payrolls[0];
+    const allowed = new Set(companyService.getEmployeeIdsForActiveCompany());
+    const companyEmployees = employees.filter((e) => allowed.has(e.id));
+    const today = attendanceRecords.filter(
+      (r) => r.date === DEMO_TODAY && allowed.has(r.employeeId),
+    );
+    const latest =
+      payrolls.find((p) => p.month === 9 && p.year === 2026) ?? payrolls[0];
     return mockRequest({
-      totalEmployees: employees.length,
-      activeEmployees: employees.filter((e) => e.status === "active").length,
+      totalEmployees: companyEmployees.length,
+      activeEmployees: companyEmployees.filter((e) => e.status === "active").length,
       presentToday: today.filter((r) => r.status === "present").length,
       lateToday: today.filter((r) => r.status === "late").length,
       absentToday: today.filter((r) => r.status === "absent").length,
@@ -84,7 +91,7 @@ export const dashboardService = {
 
 export const settingsService = {
   async getCompany(): Promise<CompanySettings> {
-    return mockRequest(companySettings);
+    return companyService.getSettings();
   },
   async getPayrollConfig(): Promise<PayrollConfig> {
     return mockRequest(payrollConfig);

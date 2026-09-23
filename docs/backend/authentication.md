@@ -40,11 +40,23 @@ Employee PII (IC/passport, bank accounts) requires permission-aware access. List
 | --- | --- |
 | Login | `/login` page with email/password against demo accounts; session stored in `localStorage` |
 | Logout | `/logout` clears the demo session and returns to `/login` |
+| Multi-company | Admin (and some managers) can belong to several companies; active company is stored in session and switchable from the header |
+| Company scope | Employee lists, dashboard KPIs, settings, and users & roles reflect the active company |
 | Route gate | `(app)` routes wrapped in `AuthGate` — unauthenticated users redirect to login |
 | Tokens | None (localStorage JSON session only) |
 | RBAC | Role is stored on the demo user; UI labels change, enforcement is not production-grade |
 | Password reset | Not implemented |
 | Audit of who approved payroll | Simulated activity feed only |
+
+### Demo companies
+
+| Company | Code | Notes |
+| --- | --- | --- |
+| Workhub Demo Sdn Bhd | `WH-AMP` | Primary KL company (full demo workforce) |
+| Northern Guard Services Sdn Bhd | `NGS-PG` | Penang — subset of workers |
+| Southlink Facilities Sdn Bhd | `SLF-JB` | Johor Bahru — subset of workers |
+
+Admin demo account (`admin@workhub.demo`) can switch across all three. Manager has Ampang + Penang. Employee/guard has Ampang only.
 
 ### Demo accounts
 

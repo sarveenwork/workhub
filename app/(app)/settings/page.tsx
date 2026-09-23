@@ -2,11 +2,21 @@
 
 import { DemoBanner } from "@/src/components/shared/DemoBanner";
 import { PageHeader } from "@/src/components/shared/PageHeader";
-import { Alert, Card, CardHeader, LoadingState, Tabs, type TabItem } from "@/src/components/ui";
-import { settingsService } from "@/src/services";
+import {
+  Alert,
+  Badge,
+  Card,
+  CardHeader,
+  LoadingState,
+  Tabs,
+  type TabItem,
+} from "@/src/components/ui";
+import { formatDateTime } from "@/src/lib/format";
+import { authService, companyService, settingsService } from "@/src/services";
 import type {
   AttendanceConfig,
   CompanySettings,
+  CompanyUser,
   ContributionConfig,
   PayrollConfig,
 } from "@/src/types";
@@ -18,25 +28,26 @@ export default function SettingsPage() {
   const [payroll, setPayroll] = useState<PayrollConfig | null>(null);
   const [attendance, setAttendance] = useState<AttendanceConfig | null>(null);
   const [contrib, setContrib] = useState<ContributionConfig | null>(null);
+  const [users, setUsers] = useState<CompanyUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      const [c, p, a, co] = await Promise.all([
-        settingsService.getCompany(),
-        settingsService.getPayrollConfig(),
-        settingsService.getAttendanceConfig(),
-        settingsService.getContributionConfig(),
-      ]);
+    void Promise.all([
+      settingsService.getCompany(),
+      settingsService.getPayrollConfig(),
+      settingsService.getAttendanceConfig(),
+      settingsService.getContributionConfig(),
+      companyService.listUsers(),
+    ]).then(([c, p, a, co, u]) => {
       if (cancelled) return;
       setCompany(c);
       setPayroll(p);
       setAttendance(a);
       setContrib(co);
+      setUsers(u);
       setLoading(false);
-    }
-    void load();
+    });
     return () => {
       cancelled = true;
     };
@@ -52,7 +63,11 @@ export default function SettingsPage() {
       label: "Company",
       content: (
         <Card>
-          <dl className="grid gap-4 sm:grid-cols-2 text-sm">
+          <Alert tone="info" className="mb-4">
+            You are managing <strong>{company.name}</strong>. Use the company
+            switcher in the header to change organisation.
+          </Alert>
+          <dl className="grid gap-4 text-sm sm:grid-cols-2">
             <Field label="Company name" value={company.name} />
             <Field label="Registration" value={company.registrationNumber} />
             <Field label="Address" value={company.address} />
@@ -72,7 +87,7 @@ export default function SettingsPage() {
           <Alert tone="warning" title="TO BE CONFIRMED" className="mb-4">
             {payroll.notes}
           </Alert>
-          <dl className="grid gap-4 sm:grid-cols-2 text-sm">
+          <dl className="grid gap-4 text-sm sm:grid-cols-2">
             <Field
               label="Cutoff day"
               value={payroll.cutoffDay?.toString() ?? "TO BE CONFIRMED"}
@@ -109,7 +124,7 @@ export default function SettingsPage() {
           <Alert tone="warning" title="TO BE CONFIRMED" className="mb-4">
             {attendance.notes}
           </Alert>
-          <dl className="grid gap-4 sm:grid-cols-2 text-sm">
+          <dl className="grid gap-4 text-sm sm:grid-cols-2">
             <Field label="Standard start" value={attendance.standardStartTime} />
             <Field label="Standard end" value={attendance.standardEndTime} />
             <Field
@@ -136,7 +151,7 @@ export default function SettingsPage() {
           <Alert tone="warning" title="TO BE CONFIRMED" className="mb-4">
             {contrib.notes}
           </Alert>
-          <dl className="grid gap-4 sm:grid-cols-2 text-sm">
+          <dl className="grid gap-4 text-sm sm:grid-cols-2">
             <Field label="EPF employee rate" value="TO BE CONFIRMED" />
             <Field label="EPF employer rate" value="TO BE CONFIRMED" />
             <Field label="SOCSO employee rate" value="TO BE CONFIRMED" />
@@ -153,19 +168,44 @@ export default function SettingsPage() {
       content: (
         <Card>
           <CardHeader
-            title="Permission-aware UI placeholders"
-            description="Real authentication is not implemented in this demo."
+            title={`Users for ${company.name}`}
+            description="Roles for this company only. Switch company in the header to manage another organisation."
           />
-          <ul className="space-y-2 text-sm">
-            <li className="rounded-md border border-border px-3 py-2">
-              Deepa Krishnan — Administrator / HR
-            </li>
-            <li className="rounded-md border border-border px-3 py-2">
-              Muhammad Hafiz — Manager (view employees, attendance, payroll summaries)
-            </li>
-            <li className="rounded-md border border-border px-3 py-2 text-muted-foreground">
-              Employee self-service — future-ready
-            </li>
+          <ul className="space-y-2">
+            {users.map((u) => (
+              <li
+                key={u.id}
+                className="flex flex-col gap-2 rounded-md border border-border px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <p className="text-sm font-medium">{u.name}</p>
+                  <p className="text-xs text-muted-foreground">{u.email}</p>
+                  {u.lastActiveAt ? (
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Last active {formatDateTime(u.lastActiveAt)}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Never signed in
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge tone="primary">{authService.roleLabel(u.role)}</Badge>
+                  <Badge
+                    tone={
+                      u.status === "active"
+                        ? "success"
+                        : u.status === "invited"
+                          ? "warning"
+                          : "neutral"
+                    }
+                  >
+                    {u.status}
+                  </Badge>
+                </div>
+              </li>
+            ))}
           </ul>
         </Card>
       ),
@@ -176,7 +216,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Settings"
-        description="Company and configuration screens. Uncertain values stay marked TO BE CONFIRMED."
+        description={`${company.name} — configuration for the active company.`}
       />
       <DemoBanner />
       <Tabs items={tabs} value={tab} onChange={setTab} />

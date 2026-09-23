@@ -9,7 +9,7 @@ import type {
 /** Demo employee persona for the mobile app (Ahmad Faizal — WH-1001). */
 export const MOBILE_EMPLOYEE_ID = "emp-001";
 
-/** Primary employer company for the mobile employee persona. */
+/** Primary employer for the mobile employee persona. */
 export const MOBILE_EMPLOYEE_COMPANY_ID = "co-ampang";
 
 function site(index: number): CheckInLocation {

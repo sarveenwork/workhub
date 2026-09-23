@@ -180,6 +180,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <p className="text-[10px] text-sidebar-muted">Workforce & Payroll</p>
           </div>
         </div>
+        <div className="px-3 pt-3">
+          <CompanySwitcher variant="sidebar" />
+        </div>
         <SidebarNav />
         <div className="border-t border-sidebar-border p-3">
           <p className="px-2 text-[10px] text-sidebar-muted">Frontend demo · mock data</p>
@@ -201,6 +204,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <X className="h-4 w-4 text-white" />
               </Button>
             </div>
+            <div className="px-3 pt-3">
+              <CompanySwitcher variant="sidebar" />
+            </div>
             <SidebarNav onNavigate={() => setMobileOpen(false)} />
           </aside>
         </div>
@@ -218,13 +224,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="hidden min-w-0 sm:block">
+            <div className="min-w-0">
               <p className="text-sm font-medium">{roleTitle}</p>
               <p className="truncate text-xs text-muted-foreground">
-                Select company to manage workforce & payroll
+                Switch company from the left sidebar
               </p>
             </div>
-            <CompanySwitcher className="min-w-0 flex-1 sm:max-w-xs lg:ml-2" />
           </div>
           <div className="flex items-center gap-2">
             <Link href="/notifications">
